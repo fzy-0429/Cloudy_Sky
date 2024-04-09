@@ -1,0 +1,21 @@
+{
+    "server": {
+        "LOG": "./server_log.log",
+        "TCP_host": "0.0.0.0",
+        "UDP_host": "0.0.0.0",
+        "TCP_port": 50,
+        "UDP_port": 51,
+        "SHUTDOWN": "",
+        "TRUST": [
+            "127.0.0.1"
+        ]
+    },
+    "client": {
+        "host": "",
+        "port": ""
+    },
+    "database": {
+        "host": "",
+        "port": ""
+    }
+}
