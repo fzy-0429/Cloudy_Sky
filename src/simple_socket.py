@@ -4,11 +4,15 @@ from threading import Thread
 from json import load
 from time import sleep
 from subprocess import run
+try:
+    from src.tools import log
+except Exception as e:
+    from tools import log
 
 
 class simple_socket_server:
     __connection_mode = 0
-    
+
     __TCP_host: str
     __TCP_port: int
     __TCP_pool = {}
@@ -68,7 +72,8 @@ class simple_socket_server:
             pass
 
     def __TCP_connection(self, connection: socket, address):
-        self.__TCP_pool[address[0]] = connection  # save TCP connnection using address
+        # save TCP connnection using address
+        self.__TCP_pool[address[0]] = connection
         msg = b""
         while self.__alive:
             buffer = connection.recv(1024)  # recv 1024 bytes
@@ -94,7 +99,8 @@ class simple_socket_server:
 
     def __shut_down(self):  # shut down server
         self.__shut_down_sock = socket(AF_INET, SOCK_STREAM)
-        self.__shut_down_sock.bind((self.__shut_down_host, self.__shut_down_port))
+        self.__shut_down_sock.bind(
+            (self.__shut_down_host, self.__shut_down_port))
         self.__shut_down_sock.listen(1)
         while self.__alive:
             connection, address = self.__shut_down_sock.accept()
