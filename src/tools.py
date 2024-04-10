@@ -1,5 +1,6 @@
 from sys import exc_info
 from datetime import datetime
+from inspect import stack
 
 
 def now():
@@ -15,6 +16,18 @@ def exception_info():
 
 class log:
     __server_log = open("./server_log.log", "a+")
+
+    @classmethod
+    def failure(self, type_info, data):
+        """unimportant failures"""
+        self.__server_log.write(
+            "FUNCFAILS:{}\n\t{}\n\t{}\n".format(now(), type_info, data))
+
+    @classmethod
+    def event(self, event_name, event_desc):
+        """event logging"""
+        self.__server_log.write(
+            "FUNCEVENT:{}\n\t{}\n\t{}\n\t{}\n".format(now(), event_name, event_desc, stack()[1][3]))
 
     @classmethod
     def log(self, data):
