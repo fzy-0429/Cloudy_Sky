@@ -4,12 +4,12 @@ from threading import Thread
 from json import load
 from time import sleep
 from subprocess import run
-from func_timeout import func_set_timeout, FunctionTimedOut
+
 
 try:
-    from src.tools import log
+    from src.tools import log, func_timer
 except Exception:
-    from tools import log
+    from tools import log, func_timer
 
 
 class simple_socket_server:
@@ -61,6 +61,8 @@ class simple_socket_server:
         self.__shut_down_thread.start()
         self.__timer_thread.start()
 
+        self.__timer_add_task(log.commit, 5)
+
     def __run(self):
         if self.__connection_mode == 0:  # TCP
             try:
@@ -96,17 +98,24 @@ class simple_socket_server:
             # collect garbage after each run
             collect()
 
-    @func_set_timeout(1)
+    @func_timer(1)
     def __timer_task_exec(func):
         try:
             func()
-        except FunctionTimedOut:
+        except TimeoutError:
             log.warning(
                 "C", "TIMER TASK TIMEOUT", "a task in timer didn't finish in time", func
             )
             return
         except Exception:
             log.exception()
+
+    def __timer_add_task(self, func, interval):
+        """add a task to the timer task"""
+        if interval in self.__timer_tasks.keys():
+            self.__timer_tasks[interval].append(func)
+        else:
+            self.__timer_tasks[interval] = [func]
 
     def __TCP_run(self, connection: socket, address):
         # save TCP connnection using address
