@@ -7,14 +7,15 @@ from subprocess import run
 
 
 try:
-    from src.tools import log, func_timer
+    from src.tools import log, clock, task
+
 except Exception:
-    from tools import log, func_timer
+    from tools import log, clock, task
 
 
 class simple_socket_server:
     __connection_mode: int
-    __timer_interval = 5
+    __timer_interval: int
 
     __TCP_host: str
     __TCP_port: int
@@ -38,7 +39,7 @@ class simple_socket_server:
     __timer_tasks = {}
     __alive = True
 
-    def __init__(self, mode=0, timer_interval=5) -> None:
+    def __init__(self, mode=0, timer_interval=1) -> None:
         self.__connection_mode = mode
         self.__timer_interval = timer_interval
 
@@ -61,7 +62,7 @@ class simple_socket_server:
         self.__shut_down_thread.start()
         self.__timer_thread.start()
 
-        self.__timer_add_task(log.commit, 5)
+        self.__timer_add_task(log.commit, 5)  # add a timed task
 
     def __run(self):
         if self.__connection_mode == 0:  # TCP
@@ -86,29 +87,22 @@ class simple_socket_server:
         counter = 0
         while self.__alive:
             for task_interval in self.__timer_tasks.keys():  # check tasks interval
-                if task_interval % counter == 0:
-                    for task in self.__timer_tasks[task_interval]:  # get all tasks
-                        self.__timer_task_exec(task)  # execute with a timeout
-            sleep(1)
+                if counter % task_interval == 0:
+                    for timer_task in self.__timer_tasks[
+                        task_interval
+                    ]:  # get all tasks
+                        task_timer = clock.clock(
+                            task.task(target=timer_task),
+                            timeout=3,  # each task may take up to 3s to finish, if excessed it will be terminated
+                        )
+                        task_timer.start()
+            sleep(self.__timer_interval)
             counter += 1
-
             # save some mem, if larger than this it will cost two times more mem
             if counter == 2147483647:
                 counter = 0
             # collect garbage after each run
             collect()
-
-    @func_timer(1)
-    def __timer_task_exec(func):
-        try:
-            func()
-        except TimeoutError:
-            log.warning(
-                "C", "TIMER TASK TIMEOUT", "a task in timer didn't finish in time", func
-            )
-            return
-        except Exception:
-            log.exception()
 
     def __timer_add_task(self, func, interval):
         """add a task to the timer task"""
@@ -202,5 +196,24 @@ class simple_socket_server:
 
 
 class simple_socket_client:
+    __TCP_port: int
+    __TCP_pool = {}
+    __TCP_recv = {}
+    __TCP_sock: socket
+
+    __UDP_host: str
+    __UDP_port: int
+    __UDP_recv = {}
+    __UDP_sock: socket
+
     def __init__(self) -> None:
+        config: dict
+        with open("./config.json") as json:
+            config = load(json)
+        self.__TCP_host = config["server"]["TCP_host"]
+        self.__TCP_port = config["server"]["TCP_port"]
+        self.__UDP_host = config["server"]["UDP_host"]
+        self.__UDP_port = config["server"]["UDP_port"]
+
+    def __run(self):
         pass

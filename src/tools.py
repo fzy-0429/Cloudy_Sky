@@ -2,7 +2,7 @@ from sys import exc_info
 from datetime import datetime
 from os import name
 from signal import signal, alarm, SIGALRM
-
+from LIE import clock, task
 
 def func_timer(time=5):
     if name != "posix":
