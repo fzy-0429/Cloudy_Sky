@@ -5,9 +5,10 @@
         "UDP_host": "0.0.0.0",
         "TCP_port": 50,
         "UDP_port": 51,
-        "SHUTDOWN": "",
+        "SHUTDOWN": "KILL",
         "TRUST": [
-            "127.0.0.1"
+            "127.0.0.1",
+            "192.168.1.117"
         ]
     },
     "client": {
