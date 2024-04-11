@@ -21,11 +21,13 @@ class simple_socket_server:
     __TCP_port: int
     __TCP_pool = {}
     __TCP_recv = {}
+    __TCP_send = []
     __TCP_sock: socket
 
     __UDP_host: str
     __UDP_port: int
     __UDP_recv = {}
+    __UDP_send = []
     __UDP_sock: socket
 
     __shut_down_host = "0.0.0.0"
@@ -39,7 +41,8 @@ class simple_socket_server:
     __timer_tasks = {}
     __alive = True
 
-    def __init__(self, mode=0, timer_interval=1) -> None:
+    def __init__(self, mode=0, timer_interval=1):
+        """init"""
         self.__connection_mode = mode
         self.__timer_interval = timer_interval
 
@@ -62,9 +65,11 @@ class simple_socket_server:
         self.__shut_down_thread.start()
         self.__timer_thread.start()
 
-        self.__timer_add_task(log.commit, 5)  # add a timed task
+        self.__timer_add_task(log.commit, 5)  # update log for every 5 seconds
+        self.__timer_add_task(self.__sendall, 1)  # send all the TCP packet in queue
 
     def __run(self):
+        """main thread"""
         if self.__connection_mode == 0:  # TCP
             try:
                 self.__TCP_sock = socket(AF_INET, SOCK_STREAM)
@@ -73,8 +78,9 @@ class simple_socket_server:
 
                 while True:
                     c, a = self.__TCP_sock.accept()
-                    self.__TCP_pool[a[0]] = Thread(target=self.__TCP_run, args=(c, a))
-                    self.__TCP_pool[a[0]].start()
+                    self.__TCP_pool[a[0]] = c
+                    s = Thread(target=self.__TCP_run, args=(c, a))
+                    s.start()
             except Exception:
                 log.exception()
         else:  # UDP
@@ -84,6 +90,7 @@ class simple_socket_server:
                 log.exception()
 
     def __timer(self):
+        """for tasks to run sequentially, and being able to terminate if timeout"""
         counter = 0
         while self.__alive:
             for task_interval in self.__timer_tasks.keys():  # check tasks interval
@@ -112,49 +119,78 @@ class simple_socket_server:
             self.__timer_tasks[interval] = [func]
 
     def __TCP_run(self, connection: socket, address):
+        """TCP recv thread for a single TCP"""
         # save TCP connnection using address
-        self.__TCP_pool[address[0]] = connection
-        msg = b""
-        while self.__alive:
-            buffer = connection.recv(1024)  # recv 1024 bytes
-            if buffer == b"":  # if recv eof, socket closed
-                connection.close()  # clean up
-                self.__TCP_pool[address[0]] = None
-                collect()
-                break
-            msg += buffer
-            if len(buffer) < 1024:  # check if this is the last packet
-                if address[0] not in self.__TCP_recv.keys():
-                    self.__TCP_recv[address[0]] = []
-                self.__TCP_recv[address[0]].append(msg)
-                # print(msg, "\n", self.__TCP_recv, "\n", self.__TCP_pool)
-                msg = b""
+        try:
+            msg = b""
+            while self.__alive:
+                buffer = connection.recv(1024)  # recv 1024 bytes
+                if buffer == b"":  # if recv eof, socket closed
+                    connection.close()  # clean up
+                    collect()
+                    break
+                msg += buffer
+                if len(buffer) < 1024:  # check if this is the last packet
+                    if address[0] not in self.__TCP_recv.keys():
+                        self.__TCP_recv[address[0]] = []
+                    self.__TCP_recv[address[0]].append(msg)
+                    # print(msg, "\n", self.__TCP_recv, "\n", self.__TCP_pool)
+                    msg = b""
+        except:
+            pass
+        finally:
+            connection.close()
+            self.__TCP_pool[address[0]] = None
+            collect()
 
-        connection.close()
-        self.__TCP_pool[address[0]] = None
-        collect()
+    def send(self, data, address: tuple, mode=0):
+        """data:bytes, address: tuple(host:str,port:int)"""
+        if mode == 0:
+            self.__TCP_send.append((address, data))
+        else:
+            self.__UDP_send.append((address, data))
 
-    def TCP_send(self, data, address):
-        pass
-
-    def __TCP_sendall(self):
-        pass
+    def __sendall(self):
+        """send all packets in queue"""
+        if not any(map(len, (self.__TCP_send, self.__UDP_send))):
+            return
+        else:
+            size = len(self.__TCP_send)
+            for x in range(size):
+                try:
+                    # pull up the connection using address, send the message
+                    packet = self.__TCP_send.pop()
+                    self.__TCP_pool[packet[0][0]].send(packet[1])
+                except:
+                    log.exception()
+                    continue
+            size = len(self.__UDP_send)
+            for x in range(size):
+                try:
+                    # pull up the connection using address, send the message
+                    packet = self.__UDP_send.pop()
+                    self.__UDP_sock.sendto(packet[1], packet[0])
+                except:
+                    log.exception()
+                    continue
 
     def __UDP_run(self):
+        """UDP recv thread"""
         self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
         self.__UDP_sock.bind((self.__UDP_host, self.__UDP_port))
         self.__UDP_sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        # UDP is connectionless, I can't save a connection and do something later
+        # UDP is connectionless, can't save a connection and do something later
         while self.__alive:
             msg, addr = self.__UDP_sock.recvfrom(1024)
-            print(msg, addr)
+            # print(msg, addr)
             # dump data to temp buffer
             if addr[0] not in self.__UDP_recv.keys():
                 self.__UDP_recv[addr[0]] = [msg]
             else:
                 self.__UDP_recv[addr[0]].append(msg)
 
-    def __shut_down(self):  # shut down server
+    def __shut_down(self):
+        """server remote shutdown thread"""
         self.__shut_down_sock = socket(AF_INET, SOCK_STREAM)
         self.__shut_down_sock.bind((self.__shut_down_host, self.__shut_down_port))
         self.__shut_down_sock.listen(1)
@@ -181,7 +217,8 @@ class simple_socket_server:
                     address[0],
                 )
 
-    def get_data(self, address, __connection_mode=0):  # get data of address
+    def get_data(self, address, __connection_mode=0):
+        """get data recv from an address"""
         return (
             self.__TCP_recv[address]
             if __connection_mode == 0
@@ -189,6 +226,7 @@ class simple_socket_server:
         )
 
     def close_all(self):
+        """close all connections"""
         for connection in self.__TCP_pool.keys():
             self.__TCP_pool[connection].close()
             self.__TCP_pool[connection] = None

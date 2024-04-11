@@ -45,9 +45,7 @@ class log:
     @classmethod
     def commit(self):
         """save all changes"""
-        self.__server_log.close()
-        self.__server_log = open("./server_log.log", "a+")
-
+        self.__server_log.flush()
     @classmethod
     def log(self, data):
         """regular logging"""
