@@ -8,7 +8,6 @@ from subprocess import run
 
 try:
     from src.tools import log, clock, task
-
 except Exception:
     from tools import log, clock, task
 
@@ -65,8 +64,11 @@ class simple_socket_server:
         self.__shut_down_thread.start()
         self.__timer_thread.start()
 
-        self.__timer_add_task(log.commit, 5)  # update log for every 5 seconds
-        self.__timer_add_task(self.__sendall, 1)  # send all the TCP packet in queue
+        self.timer_add_task(log.commit, 5)  # update log for every 5 seconds
+        # send all the TCP packet in queue
+        self.timer_add_task(self.__sendall, 1)
+        # clear recv buffer each hour to save some mem
+        self.timer_add_task(self.__clear, 3600)
 
     def __run(self):
         """main thread"""
@@ -95,13 +97,11 @@ class simple_socket_server:
         while self.__alive:
             for task_interval in self.__timer_tasks.keys():  # check tasks interval
                 if counter % task_interval == 0:
-                    for timer_task in self.__timer_tasks[
-                        task_interval
-                    ]:  # get all tasks
+                    # get all tasks
+                    for timer_task in self.__timer_tasks[task_interval]:
+                        # each task may take up to 3s to finish, if excessed it will be terminated
                         task_timer = clock.clock(
-                            task.task(target=timer_task),
-                            timeout=3,  # each task may take up to 3s to finish, if excessed it will be terminated
-                        )
+                            task.task(target=timer_task), timeout=3)
                         task_timer.start()
             sleep(self.__timer_interval)
             counter += 1
@@ -111,8 +111,8 @@ class simple_socket_server:
             # collect garbage after each run
             collect()
 
-    def __timer_add_task(self, func, interval):
-        """add a task to the timer task"""
+    def timer_add_task(self, func, interval):
+        """add a task to the timer task, only add task that runs forever, no remove after added"""
         if interval in self.__timer_tasks.keys():
             self.__timer_tasks[interval].append(func)
         else:
@@ -192,7 +192,8 @@ class simple_socket_server:
     def __shut_down(self):
         """server remote shutdown thread"""
         self.__shut_down_sock = socket(AF_INET, SOCK_STREAM)
-        self.__shut_down_sock.bind((self.__shut_down_host, self.__shut_down_port))
+        self.__shut_down_sock.bind(
+            (self.__shut_down_host, self.__shut_down_port))
         self.__shut_down_sock.listen(1)
 
         while self.__alive:
@@ -232,26 +233,95 @@ class simple_socket_server:
             self.__TCP_pool[connection] = None
         collect()
 
+    def __clean(self):
+        self.__TCP_recv.clear()
+        self.__UDP_recv.clear()
+        collect()
+
 
 class simple_socket_client:
-    __TCP_port: int
-    __TCP_pool = {}
-    __TCP_recv = {}
-    __TCP_sock: socket
+    """init"""
+    __alive = True
+    __timer_interval: int
+    __pool = {}  # connection pool for TCP only
+    __recv = {"TCP": {}, "UDP": {}}
+    __timer_tasks = {}
 
-    __UDP_host: str
-    __UDP_port: int
-    __UDP_recv = {}
+    # client can have one each at a time
+    __TCP_sock: socket
     __UDP_sock: socket
 
-    def __init__(self) -> None:
+    def __init__(self, mode=0, interval=1):
+        self.__connection_mode = mode
+        self.__timer_interval = interval
+
         config: dict
         with open("./config.json") as json:
             config = load(json)
-        self.__TCP_host = config["server"]["TCP_host"]
-        self.__TCP_port = config["server"]["TCP_port"]
-        self.__UDP_host = config["server"]["UDP_host"]
-        self.__UDP_port = config["server"]["UDP_port"]
+        self.TCP_host = config["client"]["TCP_host"]
+        self.TCP_port = config["client"]["TCP_port"]
+        self.UDP_host = config["client"]["UDP_host"]
+        self.UDP_port = config["client"]["UDP_port"]
+        try:
+            self.__TCP_sock = socket(AF_INET, SOCK_STREAM)
+            self.__TCP_sock.connect((self.TCP_host, self.TCP_port))
+        except Exception as e:
+            print(e)
+        try:
+            self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
+        except Exception as e:
+            print(e)
 
     def __run(self):
-        pass
+        try:
+            t = Thread(self.__TCP_run)
+            t.start()
+            t = Thread(self.__UDP_run)
+            t.start()
+        except Exception as e:
+            print(e)
+
+    def __TCP_run(self):
+        try:
+            msg = b""
+            while self.__alive:
+                buffer = self.__TCP_sock.recv(1024)
+                if buffer == b"":
+                    pass
+                msg += buffer
+                if (len(buffer) < 1024):
+                    self.__recv["TCP"][self.TCP_host].append(msg)
+                    msg = b""
+
+        except:
+            pass
+        finally:
+            pass
+
+    def __UDP_run(self):
+        while self.__alive:
+            try:
+                pass
+            except:
+                pass
+
+    def __timer(self):
+        counter = 0
+        while self.__alive:
+            for task_interval in self.__timer_tasks.keys():
+                if counter % task_interval == 0:
+                    for timer_task in self.__timer_tasks[task_interval]:
+                        task_timer = clock.clock(
+                            task.task(target=timer_task), timeout=3)
+                        task_timer.start()
+            sleep(self.__timer_interval)
+            counter += 1
+            if counter == 2147483647:
+                counter = 0
+            collect()
+
+    def timer_add_task(self, func, interval):
+        if interval in self.__timer_tasks.keys():
+            self.__timer_tasks[interval].append(func)
+        else:
+            self.__timer_tasks[interval] = [func]

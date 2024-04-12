@@ -12,8 +12,10 @@
         ]
     },
     "client": {
-        "host": "",
-        "port": ""
+        "TCP_host": "",
+        "TCP_port": 50,
+        "UDP_host": "",
+        "UDP_port": 51
     },
     "database": {
         "host": "",
