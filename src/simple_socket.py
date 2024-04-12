@@ -1,3 +1,4 @@
+# read before use: this whole library is posix system only, it does not run on windows
 from socket import socket, AF_INET, SOCK_STREAM, SOCK_DGRAM, SO_BROADCAST, SOL_SOCKET
 from gc import collect
 from threading import Thread
@@ -189,8 +190,9 @@ class simple_socket_server:
         """UDP recv thread"""
         try:
             self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
-            self.__UDP_sock.bind((self.__UDP_host, self.__UDP_port))
             self.__UDP_sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+            self.__UDP_sock.bind((self.__UDP_host, self.__UDP_port))
+
             # UDP is connectionless, can't save a connection and do something later
             while self.__alive:
                 try:
@@ -265,9 +267,11 @@ class simple_socket_server:
             i = input()
             ins, address, content = instruction_tool(i)
             if ins == 0:
-                print("sending: {} to{}".format(content, address))
-                self.send(content, (address, 50), 0)
-                self.send(content, (address, 51), 1)
+                print("sending: {} to {}".format(content, address))
+                if self.__connection_mode == 0:
+                    self.send(content, (address, 50), 0)
+                else:
+                    self.send(content, (address, 51), 1)
                 continue
             if ins == 1:
                 print("fetching: {}".format(address))
@@ -282,6 +286,12 @@ class simple_socket_server:
             if ins == 3:
                 print("exiting interface")
                 self.__interface = False
+                continue
+            if ins == 4:
+                if self.__connection_mode == 0:
+                    print(self.__TCP_recv)
+                else:
+                    print(self.__UDP_recv)
                 continue
             if ins == -1:
                 print("unknown instruction")
@@ -303,6 +313,8 @@ class simple_socket_client:
     __TCP_sock: socket
     __UDP_sock: socket
 
+    __interface = True
+
     def __init__(self, mode=0, interval=1):
         self.__connection_mode = mode
         self.__timer_interval = interval
@@ -319,22 +331,26 @@ class simple_socket_client:
             self.__TCP_sock.connect((self.TCP_host, self.TCP_port))
         except Exception as e:
             print(e)
-        try:
-            self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
-        except Exception as e:
-            print(e)
+
+        print("testing UDP")
+        self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
+        self.__UDP_sock.bind(("192.168.1.86", 52))
+
+        if self.__interface:
+            self.interface = Thread(target=self.__user_interface)
+            self.interface.start()
 
         self.__run()
 
-        self.__timer_thread = Thread(self.__timer)
+        self.__timer_thread = Thread(target=self.__timer)
         self.__timer_thread.start()
 
         self.timer_add_task(self.__sendall, 1)
 
     def __run(self):
         try:
-            t = Thread(self.__TCP_run)
-            u = Thread(self.__UDP_run)
+            t = Thread(target=self.__TCP_run)
+            u = Thread(target=self.__UDP_run)
             t.start()
             u.start()
         except Exception as e:
@@ -373,6 +389,7 @@ class simple_socket_client:
                     msg += buffer
                     if len(buffer) < 1024:
                         self.__recv["TCP"][self.TCP_host].append(msg)
+                        print(msg)
                         msg = b""
                     else:
                         msg += buffer
@@ -388,12 +405,13 @@ class simple_socket_client:
             msg = b""
             while self.__alive:
                 try:
-                    buffer = self.__UDP_sock.recv(1024)
+                    buffer, addr = self.__UDP_sock.recvfrom(1024)
                     if buffer == b"":
                         continue
                     msg += buffer
                     if len(buffer) < 1024:
                         self.__recv["UDP"][self.UDP_port].append(msg)
+                        print(msg)
                         msg = b""
                     else:
                         msg += buffer
@@ -418,10 +436,21 @@ class simple_socket_client:
                 size = len(self.__TCP_send)
                 for x in range(size):
                     packet = self.__TCP_send.pop()
+                    print("sending TCP: {}".format(packet))
                     self.__TCP_sock.send(packet)
                 size = len(self.__UDP_send)
                 for x in range(size):
-                    packet = self.__TCP_send.pop()
-                    self.__UDP_sock.send(packet)
+                    packet = self.__UDP_send.pop()
+                    print("sending UDP: {}".format(packet))
+                    self.__UDP_sock.sendto(packet, (self.UDP_host, self.UDP_port))
             except Exception as e:
                 print(e)
+
+    def __user_interface(self):
+        while self.__interface:
+            ins = input().split(" ")
+            if ins[0] == "send":
+                self.send(ins[1].encode(), 0)
+                self.send(ins[1].encode(), 1)
+            else:
+                print(self.__recv)

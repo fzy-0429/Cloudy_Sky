@@ -12,9 +12,9 @@
         ]
     },
     "client": {
-        "TCP_host": "",
+        "TCP_host": "192.168.1.86",
         "TCP_port": 50,
-        "UDP_host": "",
+        "UDP_host": "192.168.1.86",
         "UDP_port": 51
     },
     "database": {

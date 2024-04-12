@@ -12,16 +12,28 @@ def instruction_tool(ins):
             return res
         ins = ins.split(" ")
         if ins[0] == "send":
-            res = (0, ins[1], ins[2].encode())
+            if len(ins) > 2:
+                res = (0, ins[1], ins[2].encode())
+            else:
+                res = (0, None, ins[1].encode())
         elif ins[0] == "recv":
-            res = (1, ins[1], None)
+            if len(ins) >= 1:
+                res = (1, ins[1], None)
+            else:
+                res = (1, None, None)
         elif ins[0] == "stop":
-            res = (2, ins[1], None)
+            if len(ins) >= 1:
+                res = (2, ins[1], None)
+            else:
+                res = (2, None, None)
         elif ins[0] == "exit":
             res = (3, None, None)
+        elif ins[0] == "show":
+            res = (4, None, None)
     except:
         log.exception()
-    return res
+    finally:
+        return res
 
 
 def func_timer(time=5):
