@@ -3,27 +3,24 @@ from datetime import datetime
 from os import name
 from signal import signal, alarm, SIGALRM
 from LIE import clock, task
-from re import match
 
 
 def instruction_tool(ins):
     res = (-1, None, None)
-    if len(ins) < 4:
-        return res
-    ip = "((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}"
-    op = ins[0:3]
-    if op == "send":
-        address = match(ip, ins).group[0]
-        content = ins.split(ip)[1][1:]
-        res = (0, address, content)
-    if op == "recv":
-        address = match(ip, ins).group[0]
-        res = (1, address, None)
-    if op == "stop":
-        address = match(ip, ins).group[0]
-        res = (2, address, None)
-    if op == "exit":
-        res = (2, None, None)
+    try:
+        if len(ins) < 4:
+            return res
+        ins = ins.split(" ")
+        if ins[0] == "send":
+            res = (0, ins[1], ins[2].encode())
+        elif ins[0] == "recv":
+            res = (1, ins[1], None)
+        elif ins[0] == "stop":
+            res = (2, ins[1], None)
+        elif ins[0] == "exit":
+            res = (3, None, None)
+    except:
+        log.exception()
     return res
 
 

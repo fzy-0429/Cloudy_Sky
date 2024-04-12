@@ -9,7 +9,7 @@ from subprocess import run
 try:
     from src.tools import log, clock, task, instruction_tool
 except Exception:
-    from tools import log, clock, task,instruction_tool
+    from tools import log, clock, task, instruction_tool
 
 
 class simple_socket_server:
@@ -239,11 +239,14 @@ class simple_socket_server:
 
     def get_data(self, address, __connection_mode=0):
         """get data recv from an address"""
-        return (
-            self.__TCP_recv[address]
-            if __connection_mode == 0
-            else self.__UDP_recv[address]
-        )
+        try:
+            return (
+                self.__TCP_recv[address]
+                if __connection_mode == 0
+                else self.__UDP_recv[address]
+            )
+        except:
+            return None
 
     def close_all(self):
         """close all connections"""
@@ -260,6 +263,29 @@ class simple_socket_server:
     def __user_interface(self):
         while self.__interface:
             i = input()
+            ins, address, content = instruction_tool(i)
+            if ins == 0:
+                print("sending: {} to{}".format(content, address))
+                self.send(content, (address, 50), 0)
+                self.send(content, (address, 51), 1)
+                continue
+            if ins == 1:
+                print("fetching: {}".format(address))
+                print(self.get_data(address))
+                print(self.get_data(address, 1))
+                continue
+            if ins == 2:
+                print("closing: {}".format(address))
+                self.__TCP_pool[address].close()
+                self.__TCP_pool[address] = None
+                collect()
+            if ins == 3:
+                print("exiting interface")
+                self.__interface = False
+                continue
+            if ins == -1:
+                print("unknown instruction")
+                continue
 
 
 class simple_socket_client:
