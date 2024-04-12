@@ -275,8 +275,10 @@ class simple_socket_server:
                 continue
             if ins == 1:
                 print("fetching: {}".format(address))
-                print(self.get_data(address))
-                print(self.get_data(address, 1))
+                if self.__connection_mode == 0:
+                    print(self.get_data(address))
+                else:
+                    print(self.get_data(address, 1))
                 continue
             if ins == 2:
                 print("closing: {}".format(address))
@@ -299,158 +301,49 @@ class simple_socket_server:
 
 
 class simple_socket_client:
-    """init"""
+    __host = "192.168.1.86"
+    __port = 50
+    __sock: socket
+    __recv_buffer = []
 
-    __alive = True
-    __timer_interval: int
-    __TCP_send = []
-    __UDP_send = []
-    __recv = {"TCP": {}, "UDP": {}}
-    __timer_thread: Thread
-    __timer_tasks = {}
-
-    # client can have one each at a time
-    __TCP_sock: socket
-    __UDP_sock: socket
-
-    __interface = True
-
-    def __init__(self, mode=0, interval=1):
-        self.__connection_mode = mode
-        self.__timer_interval = interval
-
-        config: dict
-        with open("./config.json") as json:
-            config = load(json)
-        self.TCP_host = config["client"]["TCP_host"]
-        self.TCP_port = config["client"]["TCP_port"]
-        self.UDP_host = config["client"]["UDP_host"]
-        self.UDP_port = config["client"]["UDP_port"]
-        try:
-            self.__TCP_sock = socket(AF_INET, SOCK_STREAM)
-            self.__TCP_sock.connect((self.TCP_host, self.TCP_port))
-        except Exception as e:
-            print(e)
-
-        print("testing UDP")
-        self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
-        self.__UDP_sock.bind(("192.168.1.86", 52))
-
-        if self.__interface:
-            self.interface = Thread(target=self.__user_interface)
-            self.interface.start()
-
-        self.__run()
-
-        self.__timer_thread = Thread(target=self.__timer)
-        self.__timer_thread.start()
-
-        self.timer_add_task(self.__sendall, 1)
-
-    def __run(self):
-        try:
-            t = Thread(target=self.__TCP_run)
-            u = Thread(target=self.__UDP_run)
+    def __init__(self, mode=0, host=None, port=None):
+        self.mode = mode
+        if host != None and port != None:
+            self.__host = host
+            self.__port = port
+        if mode == 0:  # TCP
+            self.__sock = socket(AF_INET, SOCK_STREAM)
+            self.__sock.connect((self.__host, self.__port))
+            t = Thread(target=self.TCP_run)
             t.start()
-            u.start()
-        except Exception as e:
-            print(e)
-
-    def __timer(self):
-        counter = 0
-        while self.__alive:
-            for task_interval in self.__timer_tasks.keys():
-                if counter % task_interval == 0:
-                    for timer_task in self.__timer_tasks[task_interval]:
-                        task_timer = clock.clock(
-                            task.task(target=timer_task), timeout=3
-                        )
-                        task_timer.start()
-            sleep(self.__timer_interval)
-            counter += 1
-            if counter == 2147483647:
-                counter = 0
-            collect()
-
-    def timer_add_task(self, func, interval):
-        if interval in self.__timer_tasks.keys():
-            self.__timer_tasks[interval].append(func)
         else:
-            self.__timer_tasks[interval] = [func]
+            self.__sock = socket(AF_INET, SOCK_DGRAM)
+            self.__sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+            t = Thread(target=self.UDP_run)
+            t.start()
+        t = Thread(target=self.interface)
+        t.start()
 
-    def __TCP_run(self):
-        try:
-            msg = b""
-            while self.__alive:
-                try:
-                    buffer = self.__TCP_sock.recv(1024)
-                    if buffer == b"":
-                        continue
-                    msg += buffer
-                    if len(buffer) < 1024:
-                        self.__recv["TCP"][self.TCP_host].append(msg)
-                        print(msg)
-                        msg = b""
-                    else:
-                        msg += buffer
-                except Exception as e:
-                    print(e)
-        except:
-            pass
-        finally:
-            self.__TCP_sock.close()
+    def TCP_run(self):
+        while True:
+            buffer = self.__sock.recv(1024)
+            self.__recv_buffer.append(buffer)
+            print(buffer)
 
-    def __UDP_run(self):
-        try:
-            msg = b""
-            while self.__alive:
-                try:
-                    buffer, addr = self.__UDP_sock.recvfrom(1024)
-                    if buffer == b"":
-                        continue
-                    msg += buffer
-                    if len(buffer) < 1024:
-                        self.__recv["UDP"][self.UDP_port].append(msg)
-                        print(msg)
-                        msg = b""
-                    else:
-                        msg += buffer
-                except Exception as e:
-                    print(e)
-        except:
-            pass
-        finally:
-            self.__UDP_sock.close()
+    def UDP_run(self):
+        while True:
+            buffer = self.__sock.recvfrom(1024)
+            self.__recv_buffer.append(buffer)
+            print(buffer)
 
-    def send(self, data, mode=0):
-        if mode == 0:
-            self.__TCP_send.append(data)
-        else:
-            self.__UDP_send.append(data)
-
-    def __sendall(self):
-        if not any(map(len, (self.__TCP_send, self.__UDP_send))):
-            return
-        else:
-            try:
-                size = len(self.__TCP_send)
-                for x in range(size):
-                    packet = self.__TCP_send.pop()
-                    print("sending TCP: {}".format(packet))
-                    self.__TCP_sock.send(packet)
-                size = len(self.__UDP_send)
-                for x in range(size):
-                    packet = self.__UDP_send.pop()
-                    print("sending UDP: {}".format(packet))
-                    self.__UDP_sock.sendto(packet, (self.UDP_host, self.UDP_port))
-            except Exception as e:
-                print(e)
-
-    def __user_interface(self):
-        while self.__interface:
-            ins = input().split(" ")
-            if ins[0] == "send":
-                self.send(ins[1].encode(), 0)
-                self.send(ins[1].encode(), 1)
+    def interface(self):
+        while True:
+            i = input()
+            i = i.split(" ")
+            if i[0] == "send":
+                if self.mode == 0:
+                    self.__sock.send(i[1].encode())
+                else:
+                    self.__sock.sendto(i[1].encode(), (self.__host, self.__port))
             else:
-                print(self.__recv)
+                print(self.__recv_buffer)
