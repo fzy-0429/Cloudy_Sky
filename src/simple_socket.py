@@ -7,9 +7,9 @@ from subprocess import run
 
 
 try:
-    from src.tools import log, clock, task
+    from src.tools import log, clock, task, instruction_tool
 except Exception:
-    from tools import log, clock, task
+    from tools import log, clock, task,instruction_tool
 
 
 class simple_socket_server:
@@ -40,6 +40,8 @@ class simple_socket_server:
     __timer_tasks = {}
     __alive = True
 
+    __interface = True
+
     def __init__(self, mode=0, timer_interval=1):
         """init"""
         self.__connection_mode = mode
@@ -60,6 +62,10 @@ class simple_socket_server:
         self.__shut_down_thread = Thread(target=self.__shut_down)
         self.__timer_thread = Thread(target=self.__timer)
 
+        if self.__interface:
+            self.interface = Thread(target=self.__user_interface)
+            self.interface.start()
+
         self.__main_thread.start()
         self.__shut_down_thread.start()
         self.__timer_thread.start()
@@ -69,6 +75,34 @@ class simple_socket_server:
         self.timer_add_task(self.__sendall, 1)
         # clear recv buffer each hour to save some mem
         self.timer_add_task(self.__clear, 3600)
+
+    def __timer(self):
+        """for tasks to run sequentially, and being able to terminate if timeout"""
+        counter = 0
+        while self.__alive:
+            for task_interval in self.__timer_tasks.keys():  # check tasks interval
+                if counter % task_interval == 0:
+                    # get all tasks
+                    for timer_task in self.__timer_tasks[task_interval]:
+                        # each task may take up to 3s to finish, if excessed it will be terminated
+                        task_timer = clock.clock(
+                            task.task(target=timer_task), timeout=3
+                        )
+                        task_timer.start()
+            sleep(self.__timer_interval)
+            counter += 1
+            # save some mem, if larger than this it will cost two times more mem
+            if counter == 2147483647:
+                counter = 0
+            # collect garbage after each run
+            collect()
+
+    def timer_add_task(self, func, interval):
+        """add a task to the timer task, only add task that runs forever, no remove after added"""
+        if interval in self.__timer_tasks.keys():
+            self.__timer_tasks[interval].append(func)
+        else:
+            self.__timer_tasks[interval] = [func]
 
     def __run(self):
         """main thread"""
@@ -91,51 +125,28 @@ class simple_socket_server:
             except Exception:
                 log.exception()
 
-    def __timer(self):
-        """for tasks to run sequentially, and being able to terminate if timeout"""
-        counter = 0
-        while self.__alive:
-            for task_interval in self.__timer_tasks.keys():  # check tasks interval
-                if counter % task_interval == 0:
-                    # get all tasks
-                    for timer_task in self.__timer_tasks[task_interval]:
-                        # each task may take up to 3s to finish, if excessed it will be terminated
-                        task_timer = clock.clock(
-                            task.task(target=timer_task), timeout=3)
-                        task_timer.start()
-            sleep(self.__timer_interval)
-            counter += 1
-            # save some mem, if larger than this it will cost two times more mem
-            if counter == 2147483647:
-                counter = 0
-            # collect garbage after each run
-            collect()
-
-    def timer_add_task(self, func, interval):
-        """add a task to the timer task, only add task that runs forever, no remove after added"""
-        if interval in self.__timer_tasks.keys():
-            self.__timer_tasks[interval].append(func)
-        else:
-            self.__timer_tasks[interval] = [func]
-
     def __TCP_run(self, connection: socket, address):
         """TCP recv thread for a single TCP"""
         # save TCP connnection using address
         try:
             msg = b""
             while self.__alive:
-                buffer = connection.recv(1024)  # recv 1024 bytes
-                if buffer == b"":  # if recv eof, socket closed
-                    connection.close()  # clean up
-                    collect()
-                    break
-                msg += buffer
-                if len(buffer) < 1024:  # check if this is the last packet
-                    if address[0] not in self.__TCP_recv.keys():
-                        self.__TCP_recv[address[0]] = []
-                    self.__TCP_recv[address[0]].append(msg)
-                    # print(msg, "\n", self.__TCP_recv, "\n", self.__TCP_pool)
-                    msg = b""
+                try:
+                    buffer = connection.recv(1024)  # recv 1024 bytes
+                    if buffer == b"":  # if recv eof, socket closed
+                        connection.close()  # clean up
+                        collect()
+                        break
+                    msg += buffer
+                    if len(buffer) < 1024:  # check if this is the last packet
+                        if address[0] not in self.__TCP_recv.keys():
+                            self.__TCP_recv[address[0]] = []
+                        self.__TCP_recv[address[0]].append(msg)
+                        # print(msg, "\n", self.__TCP_recv, "\n", self.__TCP_pool)
+                        msg = b""
+                except:
+                    log.exception()
+                    continue
         except:
             pass
         finally:
@@ -176,24 +187,32 @@ class simple_socket_server:
 
     def __UDP_run(self):
         """UDP recv thread"""
-        self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
-        self.__UDP_sock.bind((self.__UDP_host, self.__UDP_port))
-        self.__UDP_sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        # UDP is connectionless, can't save a connection and do something later
-        while self.__alive:
-            msg, addr = self.__UDP_sock.recvfrom(1024)
-            # print(msg, addr)
-            # dump data to temp buffer
-            if addr[0] not in self.__UDP_recv.keys():
-                self.__UDP_recv[addr[0]] = [msg]
-            else:
-                self.__UDP_recv[addr[0]].append(msg)
+        try:
+            self.__UDP_sock = socket(AF_INET, SOCK_DGRAM)
+            self.__UDP_sock.bind((self.__UDP_host, self.__UDP_port))
+            self.__UDP_sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+            # UDP is connectionless, can't save a connection and do something later
+            while self.__alive:
+                try:
+                    msg, addr = self.__UDP_sock.recvfrom(1024)
+                    # print(msg, addr)
+                    # dump data to temp buffer
+                    if addr[0] not in self.__UDP_recv.keys():
+                        self.__UDP_recv[addr[0]] = [msg]
+                    else:
+                        self.__UDP_recv[addr[0]].append(msg)
+                except:
+                    log.exception()
+                    continue
+        except:
+            pass
+        finally:
+            self.__UDP_sock.close()
 
     def __shut_down(self):
         """server remote shutdown thread"""
         self.__shut_down_sock = socket(AF_INET, SOCK_STREAM)
-        self.__shut_down_sock.bind(
-            (self.__shut_down_host, self.__shut_down_port))
+        self.__shut_down_sock.bind((self.__shut_down_host, self.__shut_down_port))
         self.__shut_down_sock.listen(1)
 
         while self.__alive:
@@ -233,18 +252,25 @@ class simple_socket_server:
             self.__TCP_pool[connection] = None
         collect()
 
-    def __clean(self):
+    def __clear(self):
         self.__TCP_recv.clear()
         self.__UDP_recv.clear()
         collect()
 
+    def __user_interface(self):
+        while self.__interface:
+            i = input()
+
 
 class simple_socket_client:
     """init"""
+
     __alive = True
     __timer_interval: int
-    __pool = {}  # connection pool for TCP only
+    __TCP_send = []
+    __UDP_send = []
     __recv = {"TCP": {}, "UDP": {}}
+    __timer_thread: Thread
     __timer_tasks = {}
 
     # client can have one each at a time
@@ -272,38 +298,21 @@ class simple_socket_client:
         except Exception as e:
             print(e)
 
+        self.__run()
+
+        self.__timer_thread = Thread(self.__timer)
+        self.__timer_thread.start()
+
+        self.timer_add_task(self.__sendall, 1)
+
     def __run(self):
         try:
             t = Thread(self.__TCP_run)
+            u = Thread(self.__UDP_run)
             t.start()
-            t = Thread(self.__UDP_run)
-            t.start()
+            u.start()
         except Exception as e:
             print(e)
-
-    def __TCP_run(self):
-        try:
-            msg = b""
-            while self.__alive:
-                buffer = self.__TCP_sock.recv(1024)
-                if buffer == b"":
-                    pass
-                msg += buffer
-                if (len(buffer) < 1024):
-                    self.__recv["TCP"][self.TCP_host].append(msg)
-                    msg = b""
-
-        except:
-            pass
-        finally:
-            pass
-
-    def __UDP_run(self):
-        while self.__alive:
-            try:
-                pass
-            except:
-                pass
 
     def __timer(self):
         counter = 0
@@ -312,7 +321,8 @@ class simple_socket_client:
                 if counter % task_interval == 0:
                     for timer_task in self.__timer_tasks[task_interval]:
                         task_timer = clock.clock(
-                            task.task(target=timer_task), timeout=3)
+                            task.task(target=timer_task), timeout=3
+                        )
                         task_timer.start()
             sleep(self.__timer_interval)
             counter += 1
@@ -325,3 +335,67 @@ class simple_socket_client:
             self.__timer_tasks[interval].append(func)
         else:
             self.__timer_tasks[interval] = [func]
+
+    def __TCP_run(self):
+        try:
+            msg = b""
+            while self.__alive:
+                try:
+                    buffer = self.__TCP_sock.recv(1024)
+                    if buffer == b"":
+                        continue
+                    msg += buffer
+                    if len(buffer) < 1024:
+                        self.__recv["TCP"][self.TCP_host].append(msg)
+                        msg = b""
+                    else:
+                        msg += buffer
+                except Exception as e:
+                    print(e)
+        except:
+            pass
+        finally:
+            self.__TCP_sock.close()
+
+    def __UDP_run(self):
+        try:
+            msg = b""
+            while self.__alive:
+                try:
+                    buffer = self.__UDP_sock.recv(1024)
+                    if buffer == b"":
+                        continue
+                    msg += buffer
+                    if len(buffer) < 1024:
+                        self.__recv["UDP"][self.UDP_port].append(msg)
+                        msg = b""
+                    else:
+                        msg += buffer
+                except Exception as e:
+                    print(e)
+        except:
+            pass
+        finally:
+            self.__UDP_sock.close()
+
+    def send(self, data, mode=0):
+        if mode == 0:
+            self.__TCP_send.append(data)
+        else:
+            self.__UDP_send.append(data)
+
+    def __sendall(self):
+        if not any(map(len, (self.__TCP_send, self.__UDP_send))):
+            return
+        else:
+            try:
+                size = len(self.__TCP_send)
+                for x in range(size):
+                    packet = self.__TCP_send.pop()
+                    self.__TCP_sock.send(packet)
+                size = len(self.__UDP_send)
+                for x in range(size):
+                    packet = self.__TCP_send.pop()
+                    self.__UDP_sock.send(packet)
+            except Exception as e:
+                print(e)

@@ -3,6 +3,29 @@ from datetime import datetime
 from os import name
 from signal import signal, alarm, SIGALRM
 from LIE import clock, task
+from re import match
+
+
+def instruction_tool(ins):
+    res = (-1, None, None)
+    if len(ins) < 4:
+        return res
+    ip = "((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}"
+    op = ins[0:3]
+    if op == "send":
+        address = match(ip, ins).group[0]
+        content = ins.split(ip)[1][1:]
+        res = (0, address, content)
+    if op == "recv":
+        address = match(ip, ins).group[0]
+        res = (1, address, None)
+    if op == "stop":
+        address = match(ip, ins).group[0]
+        res = (2, address, None)
+    if op == "exit":
+        res = (2, None, None)
+    return res
+
 
 def func_timer(time=5):
     if name != "posix":
@@ -46,6 +69,7 @@ class log:
     def commit(self):
         """save all changes"""
         self.__server_log.flush()
+
     @classmethod
     def log(self, data):
         """regular logging"""
