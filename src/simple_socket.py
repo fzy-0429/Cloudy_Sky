@@ -41,12 +41,13 @@ class simple_socket_server:
     __timer_tasks = {}
     __alive = True
 
-    __interface = True
+    __interface = False
 
-    def __init__(self, mode=0, timer_interval=1):
+    def __init__(self, mode=0, timer_interval=1, interface=False):
         """init"""
         self.__connection_mode = mode
         self.__timer_interval = timer_interval
+        self.__interface = interface
 
         config: dict
         with open("./config.json") as json:
@@ -305,9 +306,11 @@ class simple_socket_client:
     __port = 50
     __sock: socket
     __recv_buffer = []
+    __interface = False
 
-    def __init__(self, mode=0, host=None, port=None):
+    def __init__(self, mode=0, host=None, port=None, interface=False):
         self.mode = mode
+        self.__interface = interface
         if host != None and port != None:
             self.__host = host
             self.__port = port
@@ -321,8 +324,9 @@ class simple_socket_client:
             self.__sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
             t = Thread(target=self.UDP_run)
             t.start()
-        t = Thread(target=self.interface)
-        t.start()
+        if self.__interface:
+            t = Thread(target=self.interface)
+            t.start()
 
     def TCP_run(self):
         while True:
