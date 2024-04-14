@@ -9,7 +9,8 @@
         "TRUST": [
             "127.0.0.1",
             "192.168.1.117"
-        ]
+        ],
+        "GENESIS_TOKEN": "TEST_TOKEN"
     },
     "database": {
         "host": "",

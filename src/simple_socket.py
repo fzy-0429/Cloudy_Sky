@@ -212,6 +212,14 @@ class simple_socket_server:
         finally:
             self.__UDP_sock.close()
 
+    def UDP_broadcast(self, data, port=None):
+        try:
+            if port == None:
+                port = self.__UDP_port
+            self.__UDP_sock.sendto(data, ("<broadcast>", port))
+        except:
+            log.exception()
+
     def __shut_down(self):
         """server remote shutdown thread"""
         self.__shut_down_sock = socket(AF_INET, SOCK_STREAM)
