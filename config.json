@@ -5,6 +5,7 @@
         "UDP_host": "0.0.0.0",
         "TCP_port": 50,
         "UDP_port": 51,
+        "UDP_broadcast_port": 52,
         "SHUTDOWN": "KILL",
         "TRUST": [
             "127.0.0.1",

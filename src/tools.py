@@ -3,6 +3,7 @@ from datetime import datetime
 from os import name
 from signal import signal, alarm, SIGALRM
 from LIE import clock, task
+import pickle
 
 
 def instruction_tool(ins):
