@@ -11,3 +11,6 @@ if getuid() != 0:
     print("sudo required")
     exit(0)
 s = sky()
+# while True:
+#     sleep(1)
+#     s.broadcast()

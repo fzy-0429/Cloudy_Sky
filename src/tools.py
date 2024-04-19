@@ -69,20 +69,42 @@ def exception_info():
 
 class log:
     __server_log = open("./server_log.log", "a+")
+    __trade_log = open("./trade_log.log", "a+")
 
     @classmethod
     def close(self):
         """linux only, windows will save file immediently"""
         self.__server_log.close()
+        self.__trade_log.flush()
 
     @classmethod
     def commit(self):
         """save all changes"""
         self.__server_log.flush()
+        self.__trade_log.flush()
+
+    @classmethod
+    def trade_request(self, client, sender, receiver, amount):
+        """client request write to chain"""
+        self.__trade_log.write(
+            "CLREQUEST:{}\n\tREQUEST_ID:{}\n\tSENDER:{}\n\tRECEIVER:{}\n\tAMOUNT:{}\n".format(
+                now().client, sender, receiver, amount
+            )
+        )
+
+    @classmethod
+    def trade_verify(self, trade_id, admit, deny, result):
+        """record how many clients admit a trade"""
+        self.__trade_log.write(
+            "TRADEVERI:{}\n\tREQUEST_ID:{}\n\tADMIT:{}\n\tDENY:{}\n\tRESULT:{}\n".format(
+                now(), trade_id, admit, deny, result
+            )
+        )
 
     @classmethod
     def log(self, data):
         """regular logging"""
+
         self.__server_log.write("SYSTEMLOG:{}\n\t{}\n".format(now(), data))
 
     @classmethod
