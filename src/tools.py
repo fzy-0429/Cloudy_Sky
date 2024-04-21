@@ -1,9 +1,14 @@
 from sys import exc_info
 from datetime import datetime
 from os import name
+
+# posix system only
 from signal import signal, alarm, SIGALRM
+
+# https://github.com/DAF201/labor_is_evil
 from LIE import clock, task
-import pickle
+
+
 
 
 def instruction_tool(ins):
