@@ -1,0 +1,232 @@
+EXCEPTION:04\20\2024 12:45:29
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 12:45:55
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 12:46:57
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 12:48:17
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+SHUT DOWN:04\20\2024 12:52:33
+	1
+EXCEPTION:04\20\2024 13:01:17
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:01:46
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:02:51
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:03:34
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:18:19
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:18:45
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:19:26
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:21:17
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:22:16
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:22:24
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:23:18
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:25:53
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:28:08
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:28:49
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:30:05
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:30:49
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:31:33
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:32:51
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:33:44
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:34:21
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:37:14
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:38:38
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:40:39
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:41:42
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:42:23
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:52:26
+	<class 'OSError'>
+	[Errno 98] Address already in use
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 124
+EXCEPTION:04\20\2024 13:54:07
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:55:20
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:56:41
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:56:56
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:57:13
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 13:57:32
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 14:00:47
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 14:03:51
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 14:04:07
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\20\2024 16:37:10
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+SHUT DOWN:04\20\2024 16:38:46
+	1
+EXCEPTION:04\24\2024 20:15:43
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 20:17:09
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 20:18:02
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:00:59
+	<class 'OSError'>
+	[Errno 98] Address already in use
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 124
+EXCEPTION:04\24\2024 23:01:05
+	<class 'OSError'>
+	[Errno 98] Address already in use
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 124
+EXCEPTION:04\24\2024 23:06:40
+	<class 'AttributeError'>
+	'simple_socket_server' object has no attribute '_simple_socket_server__shut_down_sock'
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 124
+SHUT DOWN:04\24\2024 23:09:20
+	1
+SHUT DOWN:04\24\2024 23:10:55
+	1
+EXCEPTION:04\24\2024 23:37:17
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:39:13
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:39:54
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:40:59
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:41:20
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:44:19
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\24\2024 23:45:33
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\25\2024 11:26:18
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\25\2024 11:27:06
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
+EXCEPTION:04\25\2024 11:29:44
+	<class 'ConnectionResetError'>
+	[Errno 104] Connection reset by peer
+	"/home/daf201/Cloudy_Sky/src/simple_socket_server.py", line 147
