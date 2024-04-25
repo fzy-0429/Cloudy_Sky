@@ -6,12 +6,12 @@ from os import name
 from signal import signal, alarm, SIGALRM
 
 # https://github.com/DAF201/labor_is_evil
+# may requires some effort to install or make it run
+# It was made on python 3.9 so I don't know about compatibility with other versions
 from LIE import clock, task
 
 
-
-
-def instruction_tool(ins):
+def instruction_tool(ins):  # decode command for server console
     res = (-1, None, None)
     try:
         if len(ins) < 4:
@@ -43,6 +43,8 @@ def instruction_tool(ins):
 
 
 def func_timer(time=5):
+    """create a timer for a function, timeout when reach max run time"""
+    # but I decided to use my old lib instead because that one is on each line execution level
     if name != "posix":
         raise BaseException("this timer is for posix system only")
 
@@ -61,18 +63,19 @@ def func_timer(time=5):
     return decorator
 
 
-def now():
+def now():  # for logging
     """get current time as string"""
     return datetime.now().strftime("%m\\%d\\%Y %H:%M:%S")
 
 
-def exception_info():
+def exception_info():  # for logging
     """get exception info"""
     type, obj, trackback = exc_info()
     return type, obj, trackback.tb_frame.f_code.co_filename, trackback.tb_lineno
 
 
 class log:
+    # create log file if not exist
     __server_log = open("./server_log.log", "a+")
     __trade_log = open("./trade_log.log", "a+")
 
